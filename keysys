@@ -1,1 +1,425 @@
-loadstring("\112\114\105\110\116\40\34\108\111\99\97\108\32\84\119\101\101\110\83\101\114\118\105\99\101\32\61\32\103\97\109\101\5
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Full-screen loading bar
+local loadingBackdrop = Instance.new("Frame")
+loadingBackdrop.Size = UDim2.new(1, 0, 1, 0)
+loadingBackdrop.BackgroundColor3 = Color3.new(0, 0, 0)
+loadingBackdrop.BorderSizePixel = 0
+loadingBackdrop.Parent = screenGui
+
+local loadingBar = Instance.new("Frame")
+loadingBar.Size = UDim2.new(0, 0, 1, 0)
+loadingBar.BackgroundColor3 = Color3.new(0.1, 0.7, 1)
+loadingBar.BorderSizePixel = 0
+loadingBar.Parent = loadingBackdrop
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1, 0, 0.1, 0)
+loadingText.Position = UDim2.new(0, 0, 0.45, 0)
+loadingText.Text = "Loading..."
+loadingText.TextColor3 = Color3.new(1, 1, 1)
+loadingText.BackgroundTransparency = 1
+loadingText.Font = Enum.Font.SourceSansBold
+loadingText.TextSize = 36
+loadingText.Parent = loadingBackdrop
+
+-- Loading animation and sound
+local loadingSound = Instance.new("Sound", SoundService)
+loadingSound.SoundId = "rbxassetid://183763515"  -- Replace with a sound ID of your choice
+loadingSound:Play()
+
+TweenService:Create(loadingBar, TweenInfo.new(3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+
+-- Function to initialize the main GUI after loading
+local function initializeMainGUI()
+    loadingSound:Stop()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 400, 0, 200)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -100)
+    frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    frame.BorderSizePixel = 0
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Parent = screenGui
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 40)
+    title.Position = UDim2.new(0, 0, 0, -40)
+    title.Text = "HackHub Key System"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.BackgroundColor3 = Color3.new(0.15, 0.15, 0.15)
+    title.BorderSizePixel = 0
+    title.Parent = frame
+
+    local keySystem = Instance.new("TextBox")
+    keySystem.Size = UDim2.new(0.9, 0, 0.3, 0)
+    keySystem.Position = UDim2.new(0.05, 0, 0.15, 0)
+    keySystem.Text = "Enter the Key"
+    keySystem.TextColor3 = Color3.new(1, 1, 1)
+    keySystem.BackgroundTransparency = 0.3
+    keySystem.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+    keySystem.BorderSizePixel = 0
+    keySystem.TextWrapped = true
+    keySystem.Parent = frame
+
+    local submitButton = Instance.new("TextButton")
+    submitButton.Size = UDim2.new(0.45, 0, 0.25, 0)
+    submitButton.Position = UDim2.new(0.05, 0, 0.55, 0)
+    submitButton.Text = "Submit"
+    submitButton.TextColor3 = Color3.new(1, 1, 1)
+    submitButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    submitButton.BorderSizePixel = 0
+    submitButton.Parent = frame
+
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 25, 0, 25)
+    closeButton.Position = UDim2.new(1, -30, 0, -30)
+    closeButton.Text = "X"
+    closeButton.TextColor3 = Color3.new(1, 1, 1)
+    closeButton.BackgroundColor3 = Color3.new(0.3, 0, 0)
+    closeButton.BorderSizePixel = 0
+    closeButton.Parent = frame
+
+    local getKeyButton = Instance.new("TextButton")
+    getKeyButton.Size = UDim2.new(0.45, 0, 0.25, 0)
+    getKeyButton.Position = UDim2.new(0.5, 0, 0.55, 0)
+    getKeyButton.Text = "Get Key"
+    getKeyButton.TextColor3 = Color3.new(1, 1, 1)
+    getKeyButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    getKeyButton.BorderSizePixel = 0
+    getKeyButton.Parent = frame
+
+    -- Add animations and effects
+    local function animateButton(button)
+        local hoverSound = Instance.new("Sound", button)
+        hoverSound.SoundId = "rbxassetid://12222058"  -- Button hover sound
+        button.MouseEnter:Connect(function()
+            hoverSound:Play()
+            TweenService:Create(button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.new(0.4, 0.4, 0.4)}):Play()
+        end)
+        button.MouseLeave:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.3), {BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)}):Play()
+        end)
+    end
+
+    animateButton(submitButton)
+    animateButton(getKeyButton)
+    animateButton(closeButton)
+
+    -- Draggable frame
+    local dragging, dragInput, dragStart, startPos
+
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    title.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    title.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    -- Button functionality
+    closeButton.MouseButton1Click:Connect(function()
+        -- Play exit sound
+        local exitSound = Instance.new("Sound", SoundService)
+        exitSound.SoundId = "rbxassetid://13114759"  -- Replace with a sound ID of your choice
+        exitSound:Play()
+
+        -- Show exit loading bar
+        frame:Destroy()
+        local exitLoadingBar = Instance.new("Frame")
+        exitLoadingBar.Size = UDim2.new(0, 0, 1, 0)
+        exitLoadingBar.BackgroundColor3 = Color3.new(0.1, 0.7, 1)
+        exitLoadingBar.BorderSizePixel = 0
+        exitLoadingBar.Parent = screenGui
+
+        local exitText = Instance.new("TextLabel")
+        exitText.Size = UDim2.new(1, 0, 0.1, 0)
+        exitText.Position = UDim2.new(0, 0, 0.45, 0)
+        exitText.Text = "Exiting..."
+        exitText.TextColor3 = Color3.new(1, 1, 1)
+        exitText.BackgroundTransparency = 1
+        exitText.Font = Enum.Font.SourceSansBold
+        exitText.TextSize = 36
+        exitText.Parent = exitLoadingBar
+
+        TweenService:Create(exitLoadingBar, TweenInfo.new(2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+        wait(2)
+        screenGui:Destroy()
+    end)
+
+    submitButton.MouseButton1Click:Connect(function()
+        if keySystem.Text == "hackhub23148" then
+            -- Success Sound
+            local successSound = Instance.new("Sound", SoundService)
+            successSound.SoundId = "rbxassetid://12221967"  -- Replace with a sound ID of your choice
+            successSound:Play()
+
+            TweenService:Create(frame, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -200, 1.5, 0)}):Play()
+            wait(0.5)
+            screenGui:Destroy()
+local player = game.Players.LocalPlayer
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+
+local Window = OrionLib:MakeWindow({
+    Name = "[☘️Event] Rebirths Master X",
+    HidePremium = false,
+    SaveConfig = true,
+    ConfigFolder = "OrionTest"
+})
+
+-- Main Tab
+local MainTab = Window:MakeTab({
+    Name = "🏠 Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local MainSection = MainTab:AddSection({
+    Name = "Main"
+})
+
+MainTab:AddButton({
+    Name = "V2.4.6",
+    Callback = function()
+        player.Character.Humanoid.WalkSpeed = 16
+    end
+})
+
+MainTab:AddButton({
+    Name = "Credits : AndroidXhAckr",
+    Callback = function()
+        player.Character.Humanoid.JumpPower = 16
+    end
+})
+
+-- New Menu Farm Tab
+local MenuFarmTab = Window:MakeTab({
+    Name = "🚜 Menu Farm",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local MenuFarmSection = MenuFarmTab:AddSection({
+    Name = "Auto Features"
+})
+
+_G.autoClicker = false
+_G.autoRebirths = false
+
+MenuFarmTab:AddToggle({
+    Name = "AutoClicker",
+    Default = false,
+    Callback = function(state)
+        _G.autoClicker = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "AutoClicker On!",
+                Content = "AutoClicker has been enabled.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+
+            -- Start the AutoClicker loop
+            spawn(function()
+                while _G.autoClicker do
+                    game:GetService("ReplicatedStorage"):WaitForChild("TappingRemote"):WaitForChild("Tap"):FireServer()
+                    wait(0.1) -- Adjust the wait time if needed
+                end
+            end)
+        else
+            OrionLib:MakeNotification({
+                Name = "AutoClicker Off!",
+                Content = "AutoClicker has been disabled.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    end
+})
+
+MenuFarmTab:AddToggle({
+    Name = "AutoRebirths",
+    Default = false,
+    Callback = function(state)
+        _G.autoRebirths = state
+        if state then
+            OrionLib:MakeNotification({
+                Name = "AutoRebirths On!",
+                Content = "AutoRebirths has been enabled.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+
+            -- Start the AutoRebirths loop
+            spawn(function()
+                while _G.autoRebirths do
+                    local args = {
+                        [1] = 100000
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Rebirth"):FireServer(unpack(args))
+                    wait(0.1) -- Adjust the wait time if needed
+                end
+            end)
+        else
+            OrionLib:MakeNotification({
+                Name = "AutoRebirths Off!",
+                Content = "AutoRebirths has been disabled.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    end
+})
+
+-- New Menu Egg Tab
+local MenuEggTab = Window:MakeTab({
+    Name = "🥚 Menu Egg",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local MenuEggSection = MenuEggTab:AddSection({
+    Name = "Egg Features"
+})
+
+-- Add tip about inventory display issue
+MenuEggTab:AddLabel("Tip: After hatching an egg, you may not see the pet in your inventory.")
+MenuEggTab:AddLabel("If this happens, you need to reset or rejoin the game to display the pet.")
+
+local eggNames = {
+    "Forest Egg",
+    "Winter Egg",
+    "Desert Egg",
+    "Beach Egg",
+    "Atlantis Egg",
+    "Volcanic Egg",
+    "Candy Egg",
+    "Castel Egg" -- Added Castel Egg here
+}
+
+local eggStates = {}
+
+for _, eggName in ipairs(eggNames) do
+    eggStates[eggName] = false
+    MenuEggTab:AddToggle({
+        Name = eggName,
+        Default = false,
+        Callback = function(state)
+            eggStates[eggName] = state
+            if state then
+                OrionLib:MakeNotification({
+                    Name = eggName .. " On!",
+                    Content = eggName .. " has been enabled.",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
+
+                spawn(function()
+                    while eggStates[eggName] do
+                        local args = {
+                            [1] = workspace:WaitForChild("Eggs"):WaitForChild(eggName)
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("EggHatchingRemote"):WaitForChild("HatchServer"):InvokeServer(unpack(args))
+                        wait(3) -- Adjust the wait time if needed
+                    end
+                end)
+            else
+                OrionLib:MakeNotification({
+                    Name = eggName .. " Off!",
+                    Content = eggName .. " has been disabled.",
+                    Image = "rbxassetid://4483345998",
+                    Time = 3
+                })
+            end
+        end
+    })
+end
+
+-- New EggSettings Tab
+local EggSettingsTab = Window:MakeTab({
+    Name = "⚙️ EggSettings",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local EggSettingsSection = EggSettingsTab:AddSection({
+    Name = "Egg Rarity Settings"
+})
+
+-- Add toggles for each egg rarity
+local rarities = {
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Epic",
+    "Legendary",
+    "Mythical"
+}
+
+for _, rarity in ipairs(rarities) do
+    EggSettingsTab:AddToggle({
+        Name = rarity,
+        Default = false,
+        Callback = function(state)
+            local args = {
+                [1] = rarity,
+                [2] = state
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("EggHatchingRemote"):WaitForChild("ToggleAutoDelete"):FireServer(unpack(args))
+            
+            OrionLib:MakeNotification({
+                Name = rarity .. " Setting",
+                Content = rarity .. " has been " .. (state and "enabled." or "disabled."),
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    })
+end
+        else
+            -- Error Sound
+            local errorSound = Instance.new("Sound", SoundService)
+            errorSound.SoundId = "rbxassetid://138014729"  -- Replace with a sound ID of your choice
+            errorSound:Play()
+        end
+    end)
+
+    getKeyButton.MouseButton1Click:Connect(function()
+        setclipboard("https://daniblogs.com/BF/1231336zp")
+    end)
+end
+
+-- Hide loading screen and show main GUI after loading
+delay(3, function()
+    TweenService:Create(loadingBackdrop, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    wait(0.5)
+    loadingBackdrop:Destroy()
+    initializeMainGUI()
+end)
